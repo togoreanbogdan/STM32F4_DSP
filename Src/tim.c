@@ -1,8 +1,11 @@
 #include "tim.h"
+#include "filt.h"
 
-# define uwPrescalerValue ((uint32_t)((SystemCoreClock /2) / 2000000) - 1)
+#define u32TimPeriod(x) ((uint32_t)((SystemCoreClock /2) /x) - 1)
+
 
 TIM_HandleTypeDef TimHandle;
+extern tstFiltParamList Filt1Param;
 
 /* TIM2 init function */
 void MX_TIM2_Init(void)
@@ -10,8 +13,8 @@ void MX_TIM2_Init(void)
   /* Set TIMx instance */
   TimHandle.Instance = TIM2;
 	
-  TimHandle.Init.Period = 4 - 1;
-  TimHandle.Init.Prescaler = uwPrescalerValue;
+  TimHandle.Init.Period = u32TimPeriod(Filt1Param.u32SamplingFreq);
+  TimHandle.Init.Prescaler = 0;
   TimHandle.Init.ClockDivision = 0;
   TimHandle.Init.CounterMode = TIM_COUNTERMODE_UP;
   HAL_TIM_Base_Init(&TimHandle);

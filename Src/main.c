@@ -11,14 +11,16 @@
 #include "math.h"
 
 /* Private defines ---------------------------------------------------------*/
-# define FREQ_STEPS 50
+# define FREQ_STEPS 100
 
 /* Private variables ---------------------------------------------------------*/
 extern tstFiltParamList Filt1Param;
 extern uint8_t ItemSelected;
 extern tstMenuInst arScreenDsplData[MENUS_NUMBER];
+static uint32_t aSampleFrequency[6] = {8000, 16000, 32000, 48000, 96000, 250000};
 extern uint8_t u8SelectedMenuItem;
-static uint8_t counter = 1;
+static int8_t counterCutFreq = 1;
+static int8_t counterSamplingFreq = 0;
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 
@@ -142,25 +144,24 @@ void ENC_vRotEnc_Handler(ENC_tenDir ENC__enDir)
 		switch(u8SelectedMenuItem)
 		{
 			case 0 : {
-				#if 0
-				increase = (uint16_t)exp(log()/FREQ_STEPS * counterFs);
 				if (ENC__enDir == left)
 				{
-					if ((Filt1Param.u32CutFreq + increase) < )
+					if (counterSamplingFreq < 5)
 					{
-						Filt1Param.u32CutFreq += increase;
-						counter ++;
+						counterSamplingFreq++;
+						Filt1Param.u32SamplingFreq = aSampleFrequency[counterSamplingFreq];
 					}
 				}
 				else
 				{
-					if ((int32_t)(Filt1Param.u32CutFreq - increase) > 0)
+					if (counterSamplingFreq > 0)
 					{
-					Filt1Param.u32CutFreq -= increase;
-					counter --;
+						counterSamplingFreq--;
+						Filt1Param.u32SamplingFreq = aSampleFrequency[counterSamplingFreq];
 					}
 				}
-				#endif
+				MX_TIM2_Init();
+				counterCutFreq = 1;
 				break;
 			}
 			
@@ -181,13 +182,13 @@ void ENC_vRotEnc_Handler(ENC_tenDir ENC__enDir)
 			}
 			
 			case 2 : {
-				increase = (uint16_t)exp(log(Filt1Param.u32SamplingFreq/2)/FREQ_STEPS * counter);
+				increase = (uint16_t)exp(log(Filt1Param.u32SamplingFreq/2)/FREQ_STEPS * counterCutFreq);
 				if (ENC__enDir == left)
 				{
 					if ((Filt1Param.u32CutFreq + increase) < Filt1Param.u32SamplingFreq/2)
 					{
 						Filt1Param.u32CutFreq += increase;
-						counter ++;
+						counterCutFreq ++;
 					}
 				}
 				else
@@ -195,9 +196,17 @@ void ENC_vRotEnc_Handler(ENC_tenDir ENC__enDir)
 					if ((int32_t)(Filt1Param.u32CutFreq - increase) > 0)
 					{
 					Filt1Param.u32CutFreq -= increase;
-					counter --;
+					counterCutFreq --;
 					}
 				}
+			}
+			
+			case 3 : {
+				break;
+			}
+			
+			case 4 : {
+				break;
 			}
 			
 			default : {

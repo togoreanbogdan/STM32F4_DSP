@@ -43,7 +43,10 @@ struct InternFiltParam
 	float b2;
 }f1Param;
 
-tstFiltParamList Filt1Param = {48000, LPF, 1, 0.0f, 1.0f, 0};
+tstFiltParamList Filt1Param = {8000, LPF, 1, 0.0f, 1.0f, 0};
+
+static float y[3] = {0.0f, 0.0f, 0.0f};
+static float x[3] = {0.0f, 0.0f, 0.0f};
 /* Function Prototype Section
 * Add prototypes for all functions called by this
 * module, with the exception of runtime routines.
@@ -62,9 +65,6 @@ tstFiltParamList Filt1Param = {48000, LPF, 1, 0.0f, 1.0f, 0};
 **************************************************/
 uint16_t CalcFilt(float in)
 {
-	static float y[3] = {0.0f, 0.0f, 0.0f};
-	static float x[3] = {0.0f, 0.0f, 0.0f};
-	
 	/* Shift vector values */
 	x[0] = x[1];
 	x[1] = x[2];
@@ -115,42 +115,45 @@ void CalcFiltInternParam()
 		}
 		
 		case HPF : {
-			f1Param.b0 =  (1 + cos(w0))/2;
-      f1Param.b1 =   -(1 + cos(w0));
-      f1Param.b2 =  (1 + cos(w0))/2;
-      f1Param.a0 =   1 + alpha;
-      f1Param.a1 =  -2*cos(w0);
-      f1Param.a2 =   1 - alpha;
+			f1Param.b0 =  ((1 + cos(w0))/2)/f1Param.a0;
+      f1Param.b1 =   (-(1 + cos(w0)))/f1Param.a0;
+      f1Param.b2 =  ((1 + cos(w0))/2)/f1Param.a0;
+      f1Param.a0 =   (1 + alpha)/f1Param.a0;
+      f1Param.a1 =  (-2*cos(w0))/f1Param.a0;
+      f1Param.a2 =   (1 - alpha)/f1Param.a0;
 			break;
 		}
 
 		case BPF : {
-			f1Param.b0 =  alpha;
+			f1Param.b0 =  alpha/f1Param.a0;
       f1Param.b1 =   0.0f;
-      f1Param.b2 =  -alpha;
-      f1Param.a0 =   1 + alpha;
-      f1Param.a1 =  -2*cos(w0);
-      f1Param.a2 =   1 - alpha;
+      f1Param.b2 =  (-alpha)/f1Param.a0;
+      f1Param.a0 =   (1 + alpha)/f1Param.a0;
+      f1Param.a1 =  (-2*cos(w0))/f1Param.a0;
+      f1Param.a2 =   (1 - alpha)/f1Param.a0;
 			break;
 		}
 
 		case APF : {
-			f1Param.b0 =   1.0f - alpha;
-      f1Param.b1 =  -2*cos(w0);
-      f1Param.b2 =   1 + alpha;
-      f1Param.a0 =   1 + alpha;
-      f1Param.a1 =  -2*cos(w0);
-      f1Param.a2 =   1 - alpha;
+			f1Param.b0 =   (1.0f - alpha)/f1Param.a0;
+      f1Param.b1 =  (-2*cos(w0))/f1Param.a0;
+      f1Param.b2 =   (1 + alpha)/f1Param.a0;
+      f1Param.a0 =   (1 + alpha)/f1Param.a0;
+      f1Param.a1 =  (-2*cos(w0))/f1Param.a0;
+      f1Param.a2 =   (1 - alpha)/f1Param.a0;
 		}
 		
 		case NOTCH : {
-			f1Param.b0 =   1.0f;
-      f1Param.b1 =  -2*cos(w0);
-      f1Param.b2 =  -1.0f;
-      f1Param.a0 =   1 + alpha;
-      f1Param.a1 =  -2*cos(w0);
-      f1Param.a2 =   1 - alpha;
+			f1Param.b0 =   (1.0f)/f1Param.a0;
+      f1Param.b1 =  (-2*cos(w0))/f1Param.a0;
+      f1Param.b2 =  (1.0f)/f1Param.a0;
+      f1Param.a0 =   (1 + alpha)/f1Param.a0;
+      f1Param.a1 =  (-2*cos(w0))/f1Param.a0;
+      f1Param.a2 =   (1 - alpha)/f1Param.a0;
 			break;
 		}
 	}
+	y[2] = 0.0f;
+	y[1] = 0.0f;
+	y[0] = 0.0f;
 }
