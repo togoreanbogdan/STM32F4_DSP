@@ -43,7 +43,8 @@ struct InternFiltParam
 	float b2;
 }f1Param;
 
-tstFiltParamList Filt1Param = {8000, LPF, 1, 0.0f, 1.0f, 0};
+/* 														{Fs,   Type, Ft, Gain, Q, CPU} */
+tstFiltParamList Filt1Param = {8000, LPF, 1000, 0.0f, 1.41f, 0};
 
 static float y[3] = {0.0f, 0.0f, 0.0f};
 static float x[3] = {0.0f, 0.0f, 0.0f};
@@ -73,10 +74,10 @@ uint16_t CalcFilt(float in)
 	y[1] = y[2];
 	/* Compute applying recursive formula */
 	y[2] = (f1Param.b0)*x[2] + 
-									(f1Param.b1)*x[1] + 
-									(f1Param.b2)*x[0] - 
-									(f1Param.a1)*y[1] - 
-									(f1Param.a2)*y[0];
+				 (f1Param.b1)*x[1] + 
+				 (f1Param.b2)*x[0] - 
+				 (f1Param.a1)*y[1] - 
+				 (f1Param.a2)*y[0];
 	/* Return result */
 	
 	return (uint16_t)y[2];
@@ -104,52 +105,61 @@ void CalcFiltInternParam()
 	switch(Filt1Param.enType)
 	{
 		case LPF : {
-			f1Param.a0 =   1 + alpha;
+			f1Param.a0 =   1.0f + alpha;
+			
 			f1Param.b0 =  ((1 - cos(w0))/2)/f1Param.a0;
-      f1Param.b1 =   (1 - cos(w0))/f1Param.a0;
-      f1Param.b2 =  ((1 - cos(w0))/2)/f1Param.a0;
-      
-      f1Param.a1 =  (-2*cos(w0))/f1Param.a0;
-      f1Param.a2 =   (1 - alpha)/f1Param.a0;
+			f1Param.b1 =   (1 - cos(w0))/f1Param.a0;
+			f1Param.b2 =  ((1 - cos(w0))/2)/f1Param.a0;
+			
+			f1Param.a1 =  (-2*cos(w0))/f1Param.a0;
+			f1Param.a2 =   (1 - alpha)/f1Param.a0;
 			break;
 		}
 		
 		case HPF : {
+			f1Param.a0 =   1.0f + alpha;
+			
 			f1Param.b0 =  ((1 + cos(w0))/2)/f1Param.a0;
-      f1Param.b1 =   (-(1 + cos(w0)))/f1Param.a0;
-      f1Param.b2 =  ((1 + cos(w0))/2)/f1Param.a0;
-      f1Param.a0 =   (1 + alpha)/f1Param.a0;
-      f1Param.a1 =  (-2*cos(w0))/f1Param.a0;
-      f1Param.a2 =   (1 - alpha)/f1Param.a0;
+			f1Param.b1 =   (-(1 + cos(w0)))/f1Param.a0;
+			f1Param.b2 =  ((1 + cos(w0))/2)/f1Param.a0;
+			
+			f1Param.a1 =  (-2*cos(w0))/f1Param.a0;
+			f1Param.a2 =   (1 - alpha)/f1Param.a0;
 			break;
 		}
 
 		case BPF : {
-			f1Param.b0 =  alpha/f1Param.a0;
-      f1Param.b1 =   0.0f;
-      f1Param.b2 =  (-alpha)/f1Param.a0;
-      f1Param.a0 =   (1 + alpha)/f1Param.a0;
-      f1Param.a1 =  (-2*cos(w0))/f1Param.a0;
-      f1Param.a2 =   (1 - alpha)/f1Param.a0;
+			f1Param.a0 =   1.0f + alpha;
+			
+			f1Param.b0 =  (Filt1Param.f32Q * alpha)/f1Param.a0;
+			f1Param.b1 =   0.0f;
+			f1Param.b2 =  (-alpha * Filt1Param.f32Q)/f1Param.a0;
+			
+			f1Param.a1 =  (-2*cos(w0))/f1Param.a0;
+			f1Param.a2 =   (1 - alpha)/f1Param.a0;
 			break;
 		}
 
 		case APF : {
-			f1Param.b0 =   (1.0f - alpha)/f1Param.a0;
-      f1Param.b1 =  (-2*cos(w0))/f1Param.a0;
-      f1Param.b2 =   (1 + alpha)/f1Param.a0;
-      f1Param.a0 =   (1 + alpha)/f1Param.a0;
-      f1Param.a1 =  (-2*cos(w0))/f1Param.a0;
-      f1Param.a2 =   (1 - alpha)/f1Param.a0;
+			f1Param.a0 =   1.0f + alpha;
+			
+			f1Param.b0 =   1.0f - alpha;
+			f1Param.b1 =  (-2*cos(w0))/f1Param.a0;
+			f1Param.b2 =   (1 + alpha)/f1Param.a0;
+			
+			f1Param.a1 =  (-2*cos(w0))/f1Param.a0;
+			f1Param.a2 =   (1 - alpha)/f1Param.a0;
 		}
 		
 		case NOTCH : {
+			f1Param.a0 =   1.0f + alpha;
+			
 			f1Param.b0 =   (1.0f)/f1Param.a0;
-      f1Param.b1 =  (-2*cos(w0))/f1Param.a0;
-      f1Param.b2 =  (1.0f)/f1Param.a0;
-      f1Param.a0 =   (1 + alpha)/f1Param.a0;
-      f1Param.a1 =  (-2*cos(w0))/f1Param.a0;
-      f1Param.a2 =   (1 - alpha)/f1Param.a0;
+			f1Param.b1 =  (-2*cos(w0))/f1Param.a0;
+			f1Param.b2 =  (1.0f)/f1Param.a0;
+			
+			f1Param.a1 =  (-2*cos(w0))/f1Param.a0;
+			f1Param.a2 =   (1 - alpha)/f1Param.a0;
 			break;
 		}
 	}
